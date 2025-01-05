@@ -1,0 +1,260 @@
+import pygame
+import random
+import sys
+from pygame.math import Vector2
+
+class Food:
+    def __init__(self):
+        self.randomize()
+    def randomize(self):
+        #Create an x and y poistion
+        self.x=random.randint(0,cell_size-3)
+        self.y=random.randint(0,cell_number-3)
+        self.pos=Vector2(self.x,self.y)  
+
+    def draw_food(self):
+        #createa a rectangle
+        food_rect=pygame.Rect(self.x*cell_size,self.y*cell_size,cell_size,cell_size)
+        self.prey = pygame.transform.scale(prey, (cell_size, cell_size))
+        #draw the rectangles
+        screen.blit(self.prey,food_rect)
+        #pygame.draw.rect(screen,(126,166,114),food_rect)
+
+class Snake:
+    def __init__(self):
+        self.body = [Vector2(7, 10), Vector2(6, 10), Vector2(5, 10)]
+        self.direction= Vector2(1,0)
+        self.new_block=False
+        #Snake Head
+        self.head_up=pygame.image.load("C:/Users\KIIT\Desktop\Snakegame\snake_graphics\snake_body\head_up.png").convert_alpha()
+        self.head_down=pygame.image.load("C:/Users\KIIT\Desktop\Snakegame\snake_graphics\snake_body\head_down.png").convert_alpha()
+        self.head_right=pygame.image.load("C:/Users\KIIT\Desktop\Snakegame\snake_graphics\snake_body\head_right.png").convert_alpha()
+        self.head_left=pygame.image.load("C:/Users\KIIT\Desktop\Snakegame\snake_graphics\snake_body\head_left.png").convert_alpha()
+
+        # #Snake Tail
+        self.tail_up = pygame.image.load("C:/Users/KIIT/Desktop/Snakegame/snake_graphics/snake_body/tail_up.png").convert_alpha()
+        self.tail_down = pygame.image.load("C:/Users/KIIT/Desktop/Snakegame/snake_graphics/snake_body/tail_down.png").convert_alpha()
+        self.tail_right = pygame.image.load("C:/Users/KIIT/Desktop/Snakegame/snake_graphics/snake_body/tail_right.png").convert_alpha()
+        self.tail_left = pygame.image.load("C:/Users/KIIT/Desktop/Snakegame/snake_graphics/snake_body/tail_left.png").convert_alpha()
+
+        
+
+        # #Snake Body
+        self.body_vertical=pygame.image.load(r"C:/Users\KIIT\Desktop\Snakegame\snake_graphics\snake_body\body_vertical.png").convert_alpha()
+        self.body_horizontal=pygame.image.load(r"C:/Users\KIIT\Desktop\Snakegame\snake_graphics\snake_body\body_horizontal.png").convert_alpha()
+
+        # #Snake body turn
+        self.body_tr=pygame.image.load(r"C:/Users\KIIT\Desktop\Snakegame\snake_graphics\snake_body\body_topright.png").convert_alpha()
+        self.body_tl=pygame.image.load(r"C:/Users\KIIT\Desktop\Snakegame\snake_graphics\snake_body\body_topleft.png").convert_alpha()
+        self.body_bl=pygame.image.load(r"C:/Users\KIIT\Desktop\Snakegame\snake_graphics\snake_body\body_bottomleft.png").convert_alpha()
+        self.body_br=pygame.image.load(r"C:/Users\KIIT\Desktop\Snakegame\snake_graphics\snake_body\body_bottomright.png").convert_alpha()
+        # Sound effect       
+        pygame.mixer.init()
+        self.crunch_sound=pygame.mixer.Sound("C:/Users\KIIT\Desktop\Snakegame\eating-sound-effect-36186.mp3")
+
+    def draw_snake(self):
+        self.update_head_graphics()
+        self.update_tail_graphics()
+        for index,block in enumerate(self.body):
+            x_pos=block.x*cell_size
+            y_pos=block.y*cell_size
+            block_rect=pygame.Rect(x_pos,y_pos,cell_size,cell_size)
+            #pygame.draw.rect(screen,(186,198,114),snake_rect)
+
+            if index ==0:
+                self.head_right1 = pygame.transform.scale(self.head_right, (cell_size, cell_size))
+                screen.blit(self.head,block_rect)
+            elif index==len(self.body)-1:
+                screen.blit(self.tail,block_rect)
+            else:
+                previous_block=self.body[index+1]-block
+                next_block=self.body[index-1]-block
+                if previous_block.x==next_block.x:
+                    self.body_vertical1 = pygame.transform.scale(self.body_vertical, (cell_size, cell_size))
+                    screen.blit(self.body_vertical1,block_rect)
+                elif previous_block.y==next_block.y:
+                    self.body_horizontal1 = pygame.transform.scale(self.body_horizontal, (cell_size, cell_size))
+                    screen.blit(self.body_horizontal1,block_rect)
+                #Checking corners
+                else:
+                    if previous_block.x==-1 and next_block.y==-1 or previous_block.y==-1 and next_block.x==-1:
+                        self.body_tl1=pygame.transform.scale(self.body_tl, (cell_size, cell_size))
+                        screen.blit(self.body_tl1,block_rect)
+                    elif previous_block.x==1 and next_block.y==-1 or previous_block.y==-1 and next_block.x==1:
+                        self.body_tr1=pygame.transform.scale(self.body_tr, (cell_size, cell_size))
+                        screen.blit(self.body_tr1,block_rect)
+                    elif previous_block.x==-1 and next_block.y==1 or previous_block.y==1 and next_block.x==-1:
+                        self.body_bl1=pygame.transform.scale(self.body_bl, (cell_size, cell_size))
+                        screen.blit(self.body_bl1,block_rect)
+                    elif previous_block.x==1 and next_block.y==1 or previous_block.y==1 and next_block.x==1:
+                        self.body_br1=pygame.transform.scale(self.body_br, (cell_size, cell_size))
+                        screen.blit(self.body_br1,block_rect)
+            # else:
+            #     pygame.draw.rect(screen,(150,100,100),block_rect)
+    def update_head_graphics(self):
+        head_relation=self.body[1]-self.body[0]
+        if head_relation==Vector2(1,0):
+            self.head_left1 = pygame.transform.scale(self.head_left, (cell_size, cell_size))
+            self.head=self.head_left1
+        elif head_relation==Vector2(-1,0):
+            self.head_right1 = pygame.transform.scale(self.head_right, (cell_size, cell_size))
+            self.head=self.head_right1
+        elif head_relation==Vector2(0,1):
+            self.head_up1 = pygame.transform.scale(self.head_up, (cell_size, cell_size))
+            self.head=self.head_up1
+        elif head_relation==Vector2(0,-1):
+            self.head_down1 = pygame.transform.scale(self.head_down, (cell_size, cell_size))
+            self.head=self.head_down1
+    def update_tail_graphics(self):
+    # Take the element from the last
+        tail_relation = self.body[-2] - self.body[-1]
+        if tail_relation == Vector2(1, 0):
+            self.tail_left1 = pygame.transform.scale(self.tail_left, (cell_size, cell_size))
+            self.tail = self.tail_left1
+        elif tail_relation == Vector2(-1, 0):
+            self.tail_right1 = pygame.transform.scale(self.tail_right, (cell_size, cell_size))
+            self.tail = self.tail_right1
+        elif tail_relation == Vector2(0, 1):
+            self.tail_up1 = pygame.transform.scale(self.tail_up, (cell_size, cell_size))
+            self.tail = self.tail_up1
+        elif tail_relation == Vector2(0, -1):
+            self.tail_down1 = pygame.transform.scale(self.tail_down, (cell_size, cell_size))
+            self.tail = self.tail_down1
+
+    
+    def move_snake(self):
+        if self.new_block==True:
+            body_copy=self.body[:]
+            body_copy.insert(0,body_copy[0]+self.direction)
+            self.body=body_copy[:]
+            self.new_block=False 
+        else:
+            body_copy=self.body[:-1]
+            body_copy.insert(0,body_copy[0]+self.direction)
+            self.body=body_copy[:]
+            #print(self.body[0])
+        
+    def add_block(self):
+        self.new_block=True
+    
+    def play_crunch_sound(self):
+        self.crunch_sound.play()
+
+class Logic(Food, Snake):
+    def __init__(self):
+        self.snake = Snake()
+        self.food = Food()
+
+    def update(self):
+        self.snake.move_snake()
+        self.check_collisions()
+        self.check_fail()
+
+    def draw_elements(self):
+        self.snake.draw_snake()
+        self.food.draw_food()
+        self.draw_score()
+
+    def check_collisions(self):
+        if self.food.pos == self.snake.body[0] :
+            #reposition the prey
+            self.food.randomize()
+            #add another block to the snake
+            self.snake.add_block()
+            self.snake.play_crunch_sound()
+
+        #If fruit land on the snake
+        for block in self.snake.body[1:]:
+            if block== self.food.pos:
+                self.food.randomize()
+
+    def check_fail(self):
+        #If snake outside of the screen
+        #Horizontal collision
+        if not 0 <= self.snake.body[0].x < cell_number:
+            self.game_over()
+        #Vertical collision
+        if not 0 <= self.snake.body[0].y < cell_number:
+            self.game_over()
+        #If snake hits itself
+        for block in self.snake.body[1:]:
+            if block== self.snake.body[0]:
+                self.game_over()
+    def game_over(self):
+        print("Better luck next time")
+        pygame.quit()
+        sys.exit()
+
+    def draw_score(self):
+        score_text=str(len(self.snake.body)-3)
+        score_surface=game_font.render(score_text,True,(56,74,12))
+        score_x=int(cell_size*cell_number-60)
+        score_y=int(cell_size*cell_number-40)
+        score_rect=score_surface.get_rect(center=(score_x,score_y))
+        self.prey = pygame.transform.scale(prey, (cell_size, cell_size))
+        prey_rect=self.prey.get_rect(midright=(score_rect.left,score_rect.centery))
+        bg_rect=pygame.Rect(prey_rect.left,prey_rect.top,prey_rect.width +score_rect.width +6,prey_rect.height)
+
+        pygame.draw.rect(screen,(167,209,61),bg_rect)
+        screen.blit(score_surface,score_rect)
+        screen.blit(self.prey,prey_rect)
+        pygame.draw.rect(screen,(56,74,12),bg_rect,2)
+
+#width,height
+cell_size=20
+cell_number=20
+screen=pygame.display.set_mode((cell_number*cell_size,cell_number*cell_size))
+clock=pygame.time.Clock()
+#Frame per seconds
+FPS=60
+#Importing the background file
+background=pygame.image.load("C:/Users\KIIT\Desktop\Snakegame\snake_graphics\Graphics\grass.jpg").convert_alpha()
+#Import the prey
+prey=pygame.image.load("C:/Users\KIIT\Desktop\Snakegame\snake_graphics\snake_body\cute-hamster-pixel-art-style_475147-1281.png").convert_alpha()
+pygame.font.init()
+
+#Game font
+game_font = pygame.font.Font("C:/Users\KIIT\Desktop\Snakegame\\aqua_wow\Aqua Wow.ttf", 30)
+
+
+#Object
+game=Logic()
+
+SCREEN_UPDATE=pygame.USEREVENT
+pygame.time.set_timer(SCREEN_UPDATE,150)
+
+while True:
+    for event in pygame.event.get():
+        if event.type==pygame.QUIT:
+            pygame.quit()
+            sys.exit()
+        #Capturing the user event
+        if event.type==SCREEN_UPDATE:
+          game.update()  
+        #Capturing usrr input from keyboard
+        if event.type==pygame.KEYDOWN:
+            if event.key==pygame.K_w:
+                #Snake doen't destroy itself
+                if game.snake.direction.y !=1:
+                    game.snake.direction=Vector2(0,-1)
+        if event.type==pygame.KEYDOWN:
+            if event.key==pygame.K_a:
+                #Snake doen't destroy itself
+                if game.snake.direction.x !=1:
+                    game.snake.direction=Vector2(-1,0)
+        if event.type==pygame.KEYDOWN:
+            if event.key==pygame.K_s:
+                #Snake doen't destroy itself
+                if game.snake.direction.y !=-1:
+                    game.snake.direction=Vector2(0,1)
+        if event.type==pygame.KEYDOWN:
+            if event.key==pygame.K_d:
+                #Snake doen't destroy itself
+                if game.snake.direction.x !=-1:
+                    game.snake.direction=Vector2(1,0)      
+    screen.blit(background,(0,0))                                      
+    #screen.fill((175,215,70))
+    game.draw_elements()
+    pygame.display.update()
+    clock.tick(FPS)
+
